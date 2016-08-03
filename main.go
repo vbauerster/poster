@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"local/poster/omdb"
+	"github.com/vbauerster/poster/omdb"
 )
 
 var title = flag.String("t", "", "search by movie title")

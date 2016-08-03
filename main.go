@@ -15,22 +15,23 @@ var title = flag.String("t", "", "search by movie title")
 var id = flag.String("i", "", "search by movie imdb id (e.g. tt1285016)")
 var year = flag.String("y", "", "year of release, optional")
 
+// var plot = flag.String("plot", "", "short or full (short by default)")
+
 func main() {
 	flag.Parse()
 
-	required, err := omdb.IDParam(*id)
+	required, err := omdb.IDFlag(*id)
 
 	if err != nil {
-		required, err = omdb.TitleParam(*title)
+		required, err = omdb.TitleFlag(*title)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "poster: either -t or -i required\n")
 			flag.PrintDefaults()
 			os.Exit(1)
 		}
 	}
-	fmt.Printf("%#v\n", required)
 
-	yearParam, err := omdb.YearParam(*year)
+	yearParam, err := omdb.YearFlag(*year)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "poster: %v\n", err)
 		flag.PrintDefaults()
@@ -42,41 +43,18 @@ func main() {
 		fmt.Fprintf(os.Stderr, "poster: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("%s => %s (%d bytes).\n", *title, filename, n)
+	fmt.Printf("Saved => %s (%d bytes).\n", filename, n)
 }
 
-// func fetchByID(id, year string) (filename string, n int64, err error) {
-// 	idParam, err := omdb.IDParam(id)
-// 	if err != nil {
-// 		return "", 0, err
-// 	}
-// 	yearParam, err := omdb.YearParam(year)
-// 	if err != nil {
-// 		return "", 0, err
-// 	}
-// 	return fetch(omdb.QueryByTitle, titleParam, yearParam)
-// }
-
-// func fetchByTitle(title, year string) (filename string, n int64, err error) {
-// 	titleParam, err := omdb.TitleParam(title)
-// 	if err != nil {
-// 		return "", 0, err
-// 	}
-// 	yearParam, err := omdb.YearParam(year)
-// 	if err != nil {
-// 		return "", 0, err
-// 	}
-// 	return fetch(omdb.QueryByTitle, titleParam, yearParam)
-// }
-
-func fetch(required *omdb.Param, extra ...*omdb.Param) (filename string, n int64, err error) {
-	movie, err := required.Query(required, extra...)
+func fetch(required *omdb.UrlParam, extra ...*omdb.UrlParam) (filename string, n int64, err error) {
+	movie, err := omdb.Query(required, extra...)
 	if err != nil {
 		return "", 0, err
 	}
 	if movie.Poster == "" || movie.Poster == "N/A" {
 		return "", 0, fmt.Errorf("the movie has no poster")
 	}
+	fmt.Println(movie)
 	resp, err := http.Get(movie.Poster)
 	if err != nil {
 		return "", 0, err

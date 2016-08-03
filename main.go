@@ -24,7 +24,7 @@ func main() {
 	if err != nil {
 		required, err = omdb.TitleFlag(*title)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "poster: either -t or -i required\n")
+			fmt.Fprintf(os.Stderr, "poster: either -id or -t required\n")
 			flag.PrintDefaults()
 			os.Exit(1)
 		}

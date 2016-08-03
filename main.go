@@ -6,29 +6,38 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strconv"
 	"strings"
 
-	"gopl/ch4/poster/omdb"
+	"local/poster/omdb"
 )
 
-var title = flag.String("t", "", "Movie title to search for")
-var year = flag.String("y", "", "Year of release")
+var title = flag.String("t", "", "search by movie title")
+var id = flag.String("i", "", "search by movie imdb id (e.g. tt1285016)")
+var year = flag.String("y", "", "year of release, optional")
 
 func main() {
 	flag.Parse()
-	if *title == "" {
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-	if *year != "" {
-		if _, err := strconv.Atoi(*year); err != nil {
-			fmt.Fprintf(os.Stderr, "poster: invalid year: %q\n", *year)
+
+	required, err := omdb.IDParam(*id)
+
+	if err != nil {
+		required, err = omdb.TitleParam(*title)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "poster: either -t or -i required\n")
+			flag.PrintDefaults()
 			os.Exit(1)
 		}
 	}
+	fmt.Printf("%#v\n", required)
 
-	filename, n, err := fetchPoster(*title, *year)
+	yearParam, err := omdb.YearParam(*year)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "poster: %v\n", err)
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	filename, n, err := fetch(required, yearParam)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "poster: %v\n", err)
 		os.Exit(1)
@@ -36,8 +45,32 @@ func main() {
 	fmt.Printf("%s => %s (%d bytes).\n", *title, filename, n)
 }
 
-func fetchPoster(title, year string) (filename string, n int64, err error) {
-	movie, err := omdb.Query(title, year)
+// func fetchByID(id, year string) (filename string, n int64, err error) {
+// 	idParam, err := omdb.IDParam(id)
+// 	if err != nil {
+// 		return "", 0, err
+// 	}
+// 	yearParam, err := omdb.YearParam(year)
+// 	if err != nil {
+// 		return "", 0, err
+// 	}
+// 	return fetch(omdb.QueryByTitle, titleParam, yearParam)
+// }
+
+// func fetchByTitle(title, year string) (filename string, n int64, err error) {
+// 	titleParam, err := omdb.TitleParam(title)
+// 	if err != nil {
+// 		return "", 0, err
+// 	}
+// 	yearParam, err := omdb.YearParam(year)
+// 	if err != nil {
+// 		return "", 0, err
+// 	}
+// 	return fetch(omdb.QueryByTitle, titleParam, yearParam)
+// }
+
+func fetch(required *omdb.Param, extra ...*omdb.Param) (filename string, n int64, err error) {
+	movie, err := required.Query(required, extra...)
 	if err != nil {
 		return "", 0, err
 	}

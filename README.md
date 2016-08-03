@@ -18,11 +18,25 @@ Plot: A computer hacker learns from mysterious rebels about the true nature of h
 Saved => The Matrix.jpg (34711 bytes).
 ```
 
+Flags
+-----
+```sh
+poster: either -id or -t required
+  -id string
+        search by movie imdb id (e.g. tt1285016)
+  -plot string
+        short or full (short by default)
+  -t string
+        search by movie title
+  -y string
+        year of release, optional
+```
+
 Install
 -------
 
 ```sh
-go get -u https://github.com/vbauerster/poster
+go get -u github.com/vbauerster/poster
 cd $GOPATH/src/github.com/vbauerster/poster
 go install
 ```

@@ -42,6 +42,7 @@ func (p URLParam) String() string {
 	return fmt.Sprintf("%s=%s", p.key, p.value)
 }
 
+// IDFlag to URLParam
 func IDFlag(value string) (*URLParam, error) {
 	if value == "" {
 		return nil, fmt.Errorf("id is required")
@@ -50,6 +51,7 @@ func IDFlag(value string) (*URLParam, error) {
 	return &p, nil
 }
 
+// TitleFlag to URLParam
 func TitleFlag(value string) (*URLParam, error) {
 	if value == "" {
 		return nil, fmt.Errorf("title is required")
@@ -58,6 +60,7 @@ func TitleFlag(value string) (*URLParam, error) {
 	return &p, nil
 }
 
+// YearFlag to URLParam
 func YearFlag(value string) (*URLParam, error) {
 	if value != "" {
 		if _, err := strconv.Atoi(value); err != nil {
@@ -68,6 +71,7 @@ func YearFlag(value string) (*URLParam, error) {
 	return &p, nil
 }
 
+// PlotFlag to URLParam
 func PlotFlag(value string) (*URLParam, error) {
 	p := new(URLParam)
 	p.key = "plot"
@@ -84,13 +88,16 @@ func PlotFlag(value string) (*URLParam, error) {
 
 // Query func queries omdbapi
 func Query(required *URLParam, extra ...*URLParam) (*Movie, error) {
+	if !required.required {
+		return nil, fmt.Errorf("Query: expected required URLParam, got: %q", required)
+	}
 	q := BaseURL + fmt.Sprintf("&%s=%s", required.key, url.QueryEscape(required.value))
 	for _, p := range extra {
 		if p.value == "" {
 			continue
 		}
 		if p.required {
-			return nil, fmt.Errorf("extra param %q must not be required", p)
+			return nil, fmt.Errorf("Query: expected not required URLParam, got: %q", p)
 		}
 		q += fmt.Sprintf("&%s=%s", p.key, url.QueryEscape(p.value))
 	}

@@ -12,10 +12,9 @@ import (
 )
 
 var title = flag.String("t", "", "search by movie title")
-var id = flag.String("i", "", "search by movie imdb id (e.g. tt1285016)")
+var id = flag.String("id", "", "search by movie imdb id (e.g. tt1285016)")
 var year = flag.String("y", "", "year of release, optional")
-
-// var plot = flag.String("plot", "", "short or full (short by default)")
+var plot = flag.String("plot", "", "short or full (short by default)")
 
 func main() {
 	flag.Parse()
@@ -38,7 +37,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	filename, n, err := fetch(required, yearParam)
+	plotParam, err := omdb.PlotFlag(*plot)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "poster: %v\n", err)
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
+	filename, n, err := fetch(required, yearParam, plotParam)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "poster: %v\n", err)
 		os.Exit(1)
@@ -46,7 +52,7 @@ func main() {
 	fmt.Printf("Saved => %s (%d bytes).\n", filename, n)
 }
 
-func fetch(required *omdb.UrlParam, extra ...*omdb.UrlParam) (filename string, n int64, err error) {
+func fetch(required *omdb.URLParam, extra ...*omdb.URLParam) (filename string, n int64, err error) {
 	movie, err := omdb.Query(required, extra...)
 	if err != nil {
 		return "", 0, err

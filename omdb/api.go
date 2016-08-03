@@ -27,47 +27,63 @@ type Movie struct {
 	Type       string
 }
 
-func (m *Movie) String() string {
-	return fmt.Sprintf("ID: %s\nTitle: %s\nPlot: %s\n",
-		m.ImdbID, m.Title, m.Plot)
+func (m Movie) String() string {
+	return fmt.Sprintf("ID: %s\nTitle: %s\nYear: %s\nPlot: %s\n",
+		m.ImdbID, m.Title, m.Year, m.Plot)
 }
 
-type UrlParam struct {
+// URLParam represents url param key value
+type URLParam struct {
 	key, value string
 	required   bool
 }
 
-func (p UrlParam) String() string {
+func (p URLParam) String() string {
 	return fmt.Sprintf("%s=%s", p.key, p.value)
 }
 
-func IDFlag(value string) (*UrlParam, error) {
+func IDFlag(value string) (*URLParam, error) {
 	if value == "" {
 		return nil, fmt.Errorf("id is required")
 	}
-	p := UrlParam{"i", value, true}
+	p := URLParam{"i", value, true}
 	return &p, nil
 }
 
-func TitleFlag(value string) (*UrlParam, error) {
+func TitleFlag(value string) (*URLParam, error) {
 	if value == "" {
 		return nil, fmt.Errorf("title is required")
 	}
-	p := UrlParam{"t", value, true}
+	p := URLParam{"t", value, true}
 	return &p, nil
 }
 
-func YearFlag(value string) (*UrlParam, error) {
+func YearFlag(value string) (*URLParam, error) {
 	if value != "" {
 		if _, err := strconv.Atoi(value); err != nil {
 			return nil, fmt.Errorf("invalid year: %q", value)
 		}
 	}
-	p := UrlParam{"y", value, false}
+	p := URLParam{"y", value, false}
 	return &p, nil
 }
 
-func Query(required *UrlParam, extra ...*UrlParam) (*Movie, error) {
+func PlotFlag(value string) (*URLParam, error) {
+	p := new(URLParam)
+	p.key = "plot"
+	switch value {
+	case "":
+		p.value = "short"
+		return p, nil
+	case "short", "full":
+		p.value = value
+		return p, nil
+	}
+	return nil, fmt.Errorf("unrecognized plot: %q", value)
+}
+
+// Query func queries omdbapi
+func Query(required *URLParam, extra ...*URLParam) (*Movie, error) {
 	q := BaseURL + fmt.Sprintf("&%s=%s", required.key, url.QueryEscape(required.value))
 	for _, p := range extra {
 		if p.value == "" {
